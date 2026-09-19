@@ -17,21 +17,11 @@ class Base(DeclarativeBase):
     """
 
 
-class TimestampMixin:
-    """Colonnes ``created_at`` et ``updated_at`` automatiques.
+class CreatedAtMixin:
+    """Colonne ``created_at`` alignée sur le schéma Supabase collaborateur."""
 
-    Règles métier:
-        ``updated_at`` est rafraîchi côté application à chaque mise à jour.
-    """
-
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
-        nullable=False,
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
+        nullable=True,
     )

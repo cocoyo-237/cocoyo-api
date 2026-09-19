@@ -12,7 +12,7 @@ def get_supabase_client() -> Client:
     """Retourne le client Supabase configuré avec la clé anon.
 
     Contexte:
-        Auth register/login — pas d'exposition de la service_role aux routes.
+        Auth register/login - pas d'exposition de la service_role aux routes.
 
     Préconditions:
         ``SUPABASE_URL`` et ``SUPABASE_ANON_KEY`` définis.
@@ -21,7 +21,7 @@ def get_supabase_client() -> Client:
         Client: Instance supabase-py.
 
     Effets de bord:
-        N/A — connexion lazy.
+        N/A - connexion lazy.
 
     Voir aussi:
         ``infrastructure.supabase.auth_jwt``.

@@ -1,4 +1,4 @@
-"""Handler désactivation produit."""
+"""Handler désactivation article (stock à zéro)."""
 
 import uuid
 
@@ -6,50 +6,34 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import ProductNotFoundError
+from features.catalogue.create_product.handler import _article_to_response
 from features.catalogue.create_product.schemas import ProductResponse
-from infrastructure.database.models.product import Product
+from infrastructure.database.models.article import Article
 
 
 async def handle_deactivate_product(session: AsyncSession, product_id: str) -> ProductResponse:
-    """Désactive un produit (soft delete).
-
-    Contexte:
-        Module PDF A — retrait du catalogue actif sans supprimer l'historique.
+    """Met ``quantite_stock`` à 0 (pas de colonne is_active en base).
 
     Args:
-        session: Session async.
-        product_id: UUID produit.
+        session: Session SQLAlchemy async.
 
     Returns:
-        ProductResponse: Produit avec ``is_active=False``.
+        Réponse du cas d''usage (DTO).
 
     Raises:
-        ProductNotFoundError: Produit inconnu.
-
-    Effets de bord:
-        Update ``is_active``.
-
-    Voir aussi:
-        ``handle_list_products`` avec ``active_only=True``.
+        Voir exceptions domaine propagées.
     """
     try:
         pid = uuid.UUID(product_id)
     except ValueError as exc:
         raise ProductNotFoundError(product_id) from exc
 
-    result = await session.execute(select(Product).where(Product.id == pid))
-    product = result.scalar_one_or_none()
-    if product is None:
+    result = await session.execute(select(Article).where(Article.id == pid))
+    article = result.scalar_one_or_none()
+    if article is None:
         raise ProductNotFoundError(product_id)
 
-    product.is_active = False
+    article.quantite_stock = 0
     await session.flush()
-    await session.refresh(product)
-    return ProductResponse(
-        id=str(product.id),
-        name=product.name,
-        category=product.category,
-        sizes=list(product.sizes),
-        unit_price=product.unit_price,
-        is_active=product.is_active,
-    )
+    await session.refresh(article)
+    return _article_to_response(article)

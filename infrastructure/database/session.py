@@ -14,7 +14,7 @@ def get_engine():
     """Retourne le moteur SQLAlchemy async (singleton lazy).
 
     Contexte:
-        Infrastructure — connexion Postgres Supabase via pooler.
+        Infrastructure - connexion Postgres Supabase via pooler.
 
     Préconditions:
         ``DATABASE_URL`` défini dans l'environnement.

@@ -1,4 +1,4 @@
-"""Routes — création produit."""
+"""Routes - création produit."""
 
 from fastapi import APIRouter
 

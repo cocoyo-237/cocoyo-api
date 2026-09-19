@@ -7,36 +7,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.exceptions import OrderNotFoundError
-from features.orders._shared import order_to_response
+from features.orders._shared import commande_to_response
 from features.orders.create_order.schemas import OrderResponse
 from features.orders.update_delivery_status.schemas import UpdateDeliveryStatusRequest
-from infrastructure.database.models.order import Order
+from infrastructure.database.models.commande import Commande
 
 
 async def handle_update_delivery_status(
     session: AsyncSession, order_id: str, payload: UpdateDeliveryStatusRequest
 ) -> OrderResponse:
-    """Met à jour le statut de livraison.
-
-    Contexte:
-        Module PDF C — suivi livreurs.
+    """Met à jour ``statut_livraison``.
 
     Args:
-        session: Session async.
-        order_id: UUID commande.
-        payload: Nouveau statut livraison.
+        session: Session SQLAlchemy async.
 
     Returns:
-        OrderResponse: Commande mise à jour.
+        Réponse du cas d''usage (DTO).
 
     Raises:
-        OrderNotFoundError: Commande absente.
-
-    Effets de bord:
-        Update ``orders.delivery_status``.
-
-    Voir aussi:
-        ``handle_update_payment_status``.
+        Voir exceptions domaine propagées.
     """
     try:
         oid = uuid.UUID(order_id)
@@ -44,13 +33,13 @@ async def handle_update_delivery_status(
         raise OrderNotFoundError(order_id) from exc
 
     result = await session.execute(
-        select(Order).where(Order.id == oid).options(selectinload(Order.lines))
+        select(Commande).where(Commande.id == oid).options(selectinload(Commande.lignes))
     )
-    order = result.scalar_one_or_none()
-    if order is None:
+    commande = result.scalar_one_or_none()
+    if commande is None:
         raise OrderNotFoundError(order_id)
 
-    order.delivery_status = payload.delivery_status
+    commande.statut_livraison = payload.delivery_status
     await session.flush()
-    await session.refresh(order)
-    return order_to_response(order)
+    await session.refresh(commande)
+    return commande_to_response(commande)

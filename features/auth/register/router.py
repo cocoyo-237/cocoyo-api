@@ -1,4 +1,4 @@
-"""Routes HTTP — inscription."""
+"""Routes HTTP - inscription."""
 
 from fastapi import APIRouter
 
@@ -19,7 +19,7 @@ def register(payload: RegisterRequest) -> RegisterResponse:
     """Inscrit un compte back-office (public).
 
     HTTP:
-        POST /auth/register — 201, 400, 422.
+        POST /auth/register - 201, 400, 422.
 
     Voir aussi:
         ``handle_register``.

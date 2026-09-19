@@ -1,4 +1,4 @@
-"""Routes HTTP — connexion."""
+"""Routes HTTP - connexion."""
 
 from fastapi import APIRouter
 
@@ -14,7 +14,7 @@ def login(payload: LoginRequest) -> LoginResponse:
     """Authentifie et retourne les jetons (public).
 
     HTTP:
-        POST /auth/login — 200, 401, 422.
+        POST /auth/login - 200, 401, 422.
     """
     try:
         return handle_login(payload)

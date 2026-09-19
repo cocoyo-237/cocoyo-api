@@ -1,4 +1,4 @@
--- Cocoyo API — schéma initial (catalogue, clients, commandes)
+-- Cocoyo API - schéma initial (catalogue, clients, commandes)
 -- Appliquer via Supabase SQL Editor ou `supabase db push`
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";

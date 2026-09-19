@@ -1,4 +1,4 @@
-# Convention docstrings — Cocoyo API
+# Convention docstrings - Cocoyo API
 
 Tout le code Python du dépôt suit le style **Google** étendu, rédigé en **français**.
 

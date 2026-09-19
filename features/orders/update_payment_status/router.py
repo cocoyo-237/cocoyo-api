@@ -1,4 +1,4 @@
-"""Routes — statut paiement."""
+"""Routes - statut paiement."""
 
 from fastapi import APIRouter
 

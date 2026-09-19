@@ -1,30 +1,26 @@
-"""Modèle ORM table ``clients``."""
+"""Modèle ORM table ``clients`` (schéma Supabase collaborateur)."""
 
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, Text
 from sqlalchemy.dialects.postgresql import UUID
-from typing import TYPE_CHECKING
-
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from infrastructure.database.base import Base, TimestampMixin
+from infrastructure.database.base import Base, CreatedAtMixin
 
 if TYPE_CHECKING:
-    from infrastructure.database.models.order import Order
+    from infrastructure.database.models.commande import Commande
 
 
-class Client(Base, TimestampMixin):
-    """Client de la marque (acheteur via réseaux sociaux / direct).
+class Client(Base, CreatedAtMixin):
+    """Client acheteur - colonnes ``nom``, ``prenom``, ``telephone``, etc.
 
     Contexte:
-        Module PDF B — association client ↔ commandes.
+        Module PDF B - table ``clients`` sur le projet Supabase partagé.
 
     Attributes:
-        id: UUID primaire.
-        name: Nom affiché du client.
-        contact: Téléphone, email ou handle réseau social.
-        orders: Commandes liées (relation 1-N).
+        gerant_id: Propriétaire (défaut ``auth.uid()`` côté Postgres).
     """
 
     __tablename__ = "clients"
@@ -32,7 +28,11 @@ class Client(Base, TimestampMixin):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    contact: Mapped[str] = mapped_column(Text, nullable=False)
+    nom: Mapped[str] = mapped_column(String(100), nullable=False)
+    prenom: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    telephone: Mapped[str] = mapped_column(String(20), nullable=False)
+    adresse_expedition: Mapped[str | None] = mapped_column(Text, nullable=True)
+    gerant_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True)
 
-    orders: Mapped[list["Order"]] = relationship(back_populates="client")
+    commandes: Mapped[list["Commande"]] = relationship(back_populates="client")

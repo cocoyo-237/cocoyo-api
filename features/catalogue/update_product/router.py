@@ -1,4 +1,4 @@
-"""Routes — mise à jour produit."""
+"""Routes - mise à jour produit."""
 
 from fastapi import APIRouter
 

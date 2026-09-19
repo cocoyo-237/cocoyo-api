@@ -1,65 +1,55 @@
-"""Handler création produit."""
+"""Handler création article."""
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import DomainError
 from features.catalogue.create_product.schemas import CreateProductRequest, ProductResponse
-from infrastructure.database.models.product import Product
+from infrastructure.database.models.article import Article
+
+
+def _article_to_response(article: Article) -> ProductResponse:
+    """Mappe ORM Article vers DTO."""
+    stock = article.quantite_stock or 0
+    return ProductResponse(
+        id=str(article.id),
+        name=article.nom,
+        sale_price=article.prix_vente,
+        purchase_price=article.prix_achat,
+        colors=list(article.couleurs_disponibles or []),
+        image_url=article.image_url,
+        stock_quantity=stock,
+        is_active=stock > 0,
+    )
 
 
 async def handle_create_product(
     session: AsyncSession, payload: CreateProductRequest
 ) -> ProductResponse:
-    """Enregistre un vêtement dans le catalogue.
-
-    Contexte:
-        Module PDF A — création produit.
-
-    Préconditions:
-        JWT valide ; au moins une taille ; prix >= 0.
-
-    Comportement:
-        1. Valide tailles non vides.
-        2. Insert produit ``is_active=True``.
+    """Insère un enregistrement dans ``articles``.
 
     Args:
-        session: Session async.
-        payload: Données produit.
+        session: Session async SQLAlchemy.
+        payload: Données article validées.
 
     Returns:
-        ProductResponse: Produit créé.
+        ProductResponse: Article créé.
 
     Raises:
-        DomainError: Tailles invalides.
-
-    Effets de bord:
-        Insert ``products``.
-
-    Exemple:
-        >>> # {"name": "Robe", "category": "Robe", "sizes": ["S","M"], "unit_price": "10000"}
-
-    Voir aussi:
-        ``features.catalogue.deactivate_product``.
+        DomainError: Couleurs vides.
     """
-    sizes = [s.strip() for s in payload.sizes if s.strip()]
-    if not sizes:
-        raise DomainError("Au moins une taille valide est requise")
+    colors = [c.strip() for c in payload.colors if c.strip()]
+    if not colors:
+        raise DomainError("Au moins une couleur disponible est requise")
 
-    product = Product(
-        name=payload.name,
-        category=payload.category,
-        sizes=sizes,
-        unit_price=payload.unit_price,
-        is_active=True,
+    article = Article(
+        nom=payload.name,
+        prix_vente=payload.sale_price,
+        prix_achat=payload.purchase_price,
+        couleurs_disponibles=colors,
+        image_url=payload.image_url,
+        quantite_stock=payload.stock_quantity,
     )
-    session.add(product)
+    session.add(article)
     await session.flush()
-    await session.refresh(product)
-    return ProductResponse(
-        id=str(product.id),
-        name=product.name,
-        category=product.category,
-        sizes=list(product.sizes),
-        unit_price=product.unit_price,
-        is_active=product.is_active,
-    )
+    await session.refresh(article)
+    return _article_to_response(article)

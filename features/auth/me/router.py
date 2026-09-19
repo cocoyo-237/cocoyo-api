@@ -1,4 +1,4 @@
-"""Routes HTTP — profil."""
+"""Routes HTTP - profil."""
 
 from fastapi import APIRouter
 
@@ -14,6 +14,6 @@ def me(current_user: CurrentUser) -> MeResponse:
     """Retourne l'utilisateur authentifié (JWT requis).
 
     HTTP:
-        GET /auth/me — 200, 401.
+        GET /auth/me - 200, 401.
     """
     return handle_me(current_user)

@@ -1,4 +1,4 @@
-"""Routes — liste produits."""
+"""Routes - liste produits."""
 
 from fastapi import APIRouter, Query
 

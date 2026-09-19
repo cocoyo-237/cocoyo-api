@@ -7,32 +7,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.exceptions import OrderNotFoundError
-from features.orders._shared import order_to_response
+from features.orders._shared import commande_to_response
 from features.orders.create_order.schemas import OrderResponse
-from infrastructure.database.models.order import Order
+from infrastructure.database.models.commande import Commande
 
 
 async def handle_get_order(session: AsyncSession, order_id: str) -> OrderResponse:
-    """Retourne une commande et ses lignes.
-
-    Contexte:
-        Module PDF B — détail commande.
+    """Retourne une ``commandes`` et ses lignes.
 
     Args:
-        session: Session async.
-        order_id: UUID commande.
+        session: Session SQLAlchemy async.
 
     Returns:
-        OrderResponse: Commande complète.
+        Réponse du cas d''usage (DTO).
 
     Raises:
-        OrderNotFoundError: Commande absente.
-
-    Effets de bord:
-        Lecture seule.
-
-    Voir aussi:
-        ``handle_list_orders``.
+        Voir exceptions domaine propagées.
     """
     try:
         oid = uuid.UUID(order_id)
@@ -40,9 +30,9 @@ async def handle_get_order(session: AsyncSession, order_id: str) -> OrderRespons
         raise OrderNotFoundError(order_id) from exc
 
     result = await session.execute(
-        select(Order).where(Order.id == oid).options(selectinload(Order.lines))
+        select(Commande).where(Commande.id == oid).options(selectinload(Commande.lignes))
     )
-    order = result.scalar_one_or_none()
-    if order is None:
+    commande = result.scalar_one_or_none()
+    if commande is None:
         raise OrderNotFoundError(order_id)
-    return order_to_response(order)
+    return commande_to_response(commande)

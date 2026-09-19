@@ -1,4 +1,4 @@
-"""Routes — désactivation produit."""
+"""Routes - désactivation produit."""
 
 from fastapi import APIRouter
 

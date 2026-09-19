@@ -1,31 +1,24 @@
-"""Énumérations métier alignées sur le schéma PostgreSQL Supabase."""
+"""Énumérations alignées sur les types Postgres du projet Supabase collaborateur."""
 
 from enum import Enum
 
 
-class PaymentStatus(str, Enum):
-    """Statut de paiement d'une commande (Module PDF C).
+class StatutPaiement(str, Enum):
+    """Type ``statut_paiement_enum`` en base."""
 
-    Valeurs:
-        UNPAID: Non payé.
-        DEPOSIT: Acompte versé (montant partiel dans ``deposit_amount``).
-        PAID: Intégralement payé.
-    """
-
-    UNPAID = "unpaid"
-    DEPOSIT = "deposit"
-    PAID = "paid"
+    EN_ATTENTE = "en_attente"
+    AVANCE_PAYEE = "avance_payee"
+    PAYE_INTEGRALEMENT = "paye_integralement"
 
 
-class DeliveryStatus(str, Enum):
-    """Statut de livraison d'une commande (Module PDF C).
+class StatutLivraison(str, Enum):
+    """Type ``statut_livraison_enum`` en base."""
 
-    Valeurs:
-        NOT_DELIVERED: Non livré.
-        SHIPPING: En cours d'expédition.
-        DELIVERED: Livré.
-    """
+    NON_LIVRE = "non_livre"
+    EN_COURS = "en_cours"
+    LIVRE = "livre"
 
-    NOT_DELIVERED = "not_delivered"
-    SHIPPING = "shipping"
-    DELIVERED = "delivered"
+
+# Alias API (anglais) → mêmes valeurs que ci-dessus pour OpenAPI
+PaymentStatus = StatutPaiement
+DeliveryStatus = StatutLivraison

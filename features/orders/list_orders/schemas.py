@@ -1,4 +1,4 @@
-"""Schémas — liste commandes."""
+"""Schémas - liste commandes."""
 
 from pydantic import BaseModel, Field
 

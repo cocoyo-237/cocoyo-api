@@ -1,4 +1,4 @@
-"""Slice inscription — export router."""
+"""Slice inscription - export router."""
 
 from features.auth.register.router import router
 

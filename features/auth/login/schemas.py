@@ -1,4 +1,4 @@
-"""Schémas Pydantic — connexion."""
+"""Schémas Pydantic - connexion."""
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -14,6 +14,8 @@ class LoginResponse(BaseModel):
     """Jetons Supabase après connexion."""
 
     access_token: str = Field(..., description="JWT à envoyer en Bearer")
-    refresh_token: str = Field(..., description="Jeton de rafraîchissement Supabase")
+    refresh_token: str = Field(...,
+                               description="Jeton de rafraîchissement Supabase")
     token_type: str = Field(default="bearer", description="Type OAuth2")
-    expires_in: int | None = Field(default=None, description="Durée de vie access token (s)")
+    expires_in: int | None = Field(
+        default=None, description="Durée de vie access token (s)")

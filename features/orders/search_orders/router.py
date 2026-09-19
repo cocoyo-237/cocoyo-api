@@ -1,4 +1,4 @@
-"""Routes — recherche commandes."""
+"""Routes - recherche commandes."""
 
 from fastapi import APIRouter, Query
 
@@ -24,7 +24,7 @@ async def search_orders(
 
     Note:
         Doit être déclaré avant ``GET /orders/{order_id}`` dans le registry
-        ou utiliser un chemin distinct — ici ``/orders/search``.
+        ou utiliser un chemin distinct - ici ``/orders/search``.
     """
     return await handle_search_orders(
         session,

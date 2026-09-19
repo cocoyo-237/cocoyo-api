@@ -9,7 +9,7 @@ def handle_register(payload: RegisterRequest) -> RegisterResponse:
     """Inscrit un nouvel utilisateur back-office via Supabase Auth.
 
     Contexte:
-        Auth — hors modules PDF A-D, prérequis sécurité API.
+        Auth - hors modules PDF A-D, prérequis sécurité API.
 
     Préconditions:
         Email non déjà utilisé côté Supabase (sinon erreur Auth).
@@ -19,10 +19,10 @@ def handle_register(payload: RegisterRequest) -> RegisterResponse:
         2. Retourne l'identifiant utilisateur créé.
 
     Règles métier:
-        N/A — délégué à Supabase (confirmation email selon config projet).
+        N/A - délégué à Supabase (confirmation email selon config projet).
 
     Transactions:
-        N/A — pas d'écriture Postgres métier.
+        N/A - pas d'écriture Postgres métier.
 
     Args:
         payload: Email et mot de passe validés.
@@ -44,7 +44,8 @@ def handle_register(payload: RegisterRequest) -> RegisterResponse:
     """
     client = get_supabase_client()
     try:
-        result = client.auth.sign_up({"email": payload.email, "password": payload.password})
+        result = client.auth.sign_up(
+            {"email": payload.email, "password": payload.password})
     except Exception as exc:
         raise DomainError(f"Inscription impossible : {exc}") from exc
 

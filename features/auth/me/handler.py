@@ -7,7 +7,7 @@ def handle_me(current_user: dict) -> MeResponse:
     """Construit la réponse profil à partir du JWT validé.
 
     Contexte:
-        Auth — vérification de session.
+        Auth - vérification de session.
 
     Préconditions:
         ``current_user`` fourni par ``get_current_user``.

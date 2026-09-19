@@ -1,4 +1,4 @@
-"""Routes — création client."""
+"""Routes - création client."""
 
 from fastapi import APIRouter
 

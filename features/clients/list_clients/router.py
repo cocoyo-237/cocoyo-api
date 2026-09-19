@@ -1,4 +1,4 @@
-"""Routes — liste clients."""
+"""Routes - liste clients."""
 
 from fastapi import APIRouter, Query
 

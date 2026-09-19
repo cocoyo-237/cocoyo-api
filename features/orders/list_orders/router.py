@@ -1,4 +1,4 @@
-"""Routes — liste commandes."""
+"""Routes - liste commandes."""
 
 from fastapi import APIRouter, Query
 

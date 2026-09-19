@@ -1,7 +1,7 @@
 [project]
 name = "cocoyo-api"
 version = "0.1.0"
-description = "API back-office Cocoyo — gestion catalogue, commandes et tableau de bord"
+description = "API back-office Cocoyo - gestion catalogue, commandes et tableau de bord"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

@@ -1,4 +1,4 @@
-"""Configuration pytest — client FastAPI et variables d'environnement factices."""
+"""Configuration pytest - client FastAPI et variables d'environnement factices."""
 
 from core.config import get_settings
 import os

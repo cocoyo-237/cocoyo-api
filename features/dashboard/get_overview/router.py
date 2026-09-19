@@ -1,4 +1,4 @@
-"""Routes — tableau de bord."""
+"""Routes - tableau de bord."""
 
 from fastapi import APIRouter
 

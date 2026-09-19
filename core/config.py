@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         Utilisé par ``core.app_factory`` et l'infrastructure Supabase/Postgres.
 
     Règles métier:
-        N/A — valeurs techniques uniquement.
+        N/A - valeurs techniques uniquement.
 
     Attributes:
         supabase_url: URL du projet Supabase.
@@ -76,7 +76,7 @@ def get_settings() -> Settings:
         ValidationError: Variable obligatoire manquante ou invalide.
 
     Effets de bord:
-        N/A — lecture configuration uniquement.
+        N/A - lecture configuration uniquement.
 
     Exemple:
         >>> settings = get_settings()

@@ -8,42 +8,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.exceptions import DomainError, OrderNotFoundError
-from features.orders._shared import order_to_response
+from features.orders._shared import commande_to_response, commande_total
 from features.orders.create_order.schemas import OrderResponse
 from features.orders.update_payment_status.schemas import UpdatePaymentStatusRequest
-from infrastructure.database.models.order import Order
-from shared.enums import PaymentStatus
+from infrastructure.database.models.commande import Commande
+from shared.enums import StatutPaiement
 
 
 async def handle_update_payment_status(
     session: AsyncSession, order_id: str, payload: UpdatePaymentStatusRequest
 ) -> OrderResponse:
-    """Met à jour le statut de paiement d'une commande.
-
-    Contexte:
-        Module PDF C — suivi paiements.
-
-    Règles métier:
-        - Si ``deposit``, ``deposit_amount`` obligatoire et <= ``total_amount``.
-        - Si ``paid``, ``deposit_amount`` forcé à ``total_amount``.
+    """Met à jour ``statut_paiement`` et ``montant_avance``.
 
     Args:
-        session: Session async.
-        order_id: UUID commande.
-        payload: Nouveau statut et acompte optionnel.
+        session: Session SQLAlchemy async.
 
     Returns:
-        OrderResponse: Commande mise à jour.
+        Réponse du cas d''usage (DTO).
 
     Raises:
-        OrderNotFoundError: Commande absente.
-        DomainError: Acompte invalide.
-
-    Effets de bord:
-        Update ``orders.payment_status`` et ``deposit_amount``.
-
-    Voir aussi:
-        ``handle_update_delivery_status``.
+        Voir exceptions domaine propagées.
     """
     try:
         oid = uuid.UUID(order_id)
@@ -51,24 +35,26 @@ async def handle_update_payment_status(
         raise OrderNotFoundError(order_id) from exc
 
     result = await session.execute(
-        select(Order).where(Order.id == oid).options(selectinload(Order.lines))
+        select(Commande).where(Commande.id == oid).options(selectinload(Commande.lignes))
     )
-    order = result.scalar_one_or_none()
-    if order is None:
+    commande = result.scalar_one_or_none()
+    if commande is None:
         raise OrderNotFoundError(order_id)
 
-    if payload.payment_status == PaymentStatus.DEPOSIT:
-        if payload.deposit_amount is None:
-            raise DomainError("deposit_amount est requis pour le statut deposit")
-        if payload.deposit_amount > order.total_amount:
-            raise DomainError("L'acompte ne peut pas dépasser le total")
-        order.deposit_amount = payload.deposit_amount
-    elif payload.payment_status == PaymentStatus.PAID:
-        order.deposit_amount = order.total_amount
-    elif payload.payment_status == PaymentStatus.UNPAID:
-        order.deposit_amount = Decimal("0")
+    total = commande_total(commande)
 
-    order.payment_status = payload.payment_status
+    if payload.payment_status == StatutPaiement.AVANCE_PAYEE:
+        if payload.deposit_amount is None:
+            raise DomainError("deposit_amount est requis pour le statut avance_payee")
+        if payload.deposit_amount > total:
+            raise DomainError("L'acompte ne peut pas dépasser le total")
+        commande.montant_avance = payload.deposit_amount
+    elif payload.payment_status == StatutPaiement.PAYE_INTEGRALEMENT:
+        commande.montant_avance = total
+    elif payload.payment_status == StatutPaiement.EN_ATTENTE:
+        commande.montant_avance = Decimal("0")
+
+    commande.statut_paiement = payload.payment_status
     await session.flush()
-    await session.refresh(order)
-    return order_to_response(order)
+    await session.refresh(commande)
+    return commande_to_response(commande)

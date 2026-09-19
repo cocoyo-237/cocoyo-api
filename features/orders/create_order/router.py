@@ -1,4 +1,4 @@
-"""Routes — création commande."""
+"""Routes - création commande."""
 
 from fastapi import APIRouter
 

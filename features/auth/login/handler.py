@@ -9,7 +9,7 @@ def handle_login(payload: LoginRequest) -> LoginResponse:
     """Authentifie un opérateur et retourne les jetons Supabase.
 
     Contexte:
-        Auth — accès aux routes protégées.
+        Auth - accès aux routes protégées.
 
     Préconditions:
         Compte existant et mot de passe correct.

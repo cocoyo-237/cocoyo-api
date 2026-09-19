@@ -8,89 +8,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.exceptions import ClientNotFoundError, InvalidOrderLineError, ProductNotFoundError
-from features.orders.create_order.schemas import (
-    CreateOrderRequest,
-    OrderLineResponse,
-    OrderResponse,
-)
+from features.orders._shared import commande_to_response
+from features.orders.create_order.schemas import CreateOrderRequest, OrderResponse
+from infrastructure.database.models.article import Article
 from infrastructure.database.models.client import Client
-from infrastructure.database.models.order import Order
-from infrastructure.database.models.order_line import OrderLine
-from infrastructure.database.models.product import Product
-from shared.enums import DeliveryStatus, PaymentStatus
-from shared.order_totals import OrderLineInput, compute_order_total
-
-
-def _order_to_response(order: Order) -> OrderResponse:
-    """Mappe un ORM Order vers OrderResponse.
-
-    Args:
-        order: Commande avec lignes chargées.
-
-    Returns:
-        OrderResponse: DTO API.
-    """
-    return OrderResponse(
-        id=str(order.id),
-        client_id=str(order.client_id),
-        ordered_at=order.ordered_at,
-        payment_status=order.payment_status,
-        delivery_status=order.delivery_status,
-        total_amount=order.total_amount,
-        deposit_amount=order.deposit_amount,
-        lines=[
-            OrderLineResponse(
-                product_id=str(line.product_id),
-                size=line.size,
-                quantity=line.quantity,
-                unit_price=line.unit_price,
-            )
-            for line in order.lines
-        ],
-    )
+from infrastructure.database.models.commande import Commande
+from infrastructure.database.models.ligne_commande import LigneCommande
+from shared.enums import StatutLivraison, StatutPaiement
 
 
 async def handle_create_order(
     session: AsyncSession, payload: CreateOrderRequest
 ) -> OrderResponse:
-    """Crée une commande multi-articles avec calcul du total et snapshot des prix.
-
-    Contexte:
-        Module PDF B — prise de commande panier.
-
-    Préconditions:
-        Client existant ; produits actifs ; tailles valides.
-
-    Comportement:
-        1. Vérifie le client.
-        2. Charge les produits par id.
-        3. Valide chaque ligne (taille, quantité).
-        4. Calcule total via ``compute_order_total``.
-        5. Insère order + order_lines.
-
-    Transactions:
-        Atomique via session unique (commit en fin de requête).
+    """Crée ``commandes`` et ``lignes_commande`` avec prix figés.
 
     Args:
-        session: Session async.
-        payload: Client et lignes panier.
+        session: Session SQLAlchemy async.
 
     Returns:
-        OrderResponse: Commande créée.
+        Réponse du cas d''usage (DTO).
 
     Raises:
-        ClientNotFoundError: Client absent.
-        ProductNotFoundError: Produit absent/inactif.
-        InvalidOrderLineError: Taille ou quantité invalide.
-
-    Effets de bord:
-        Insert ``orders`` et ``order_lines``.
-
-    Exemple:
-        >>> # {"client_id": "...", "lines": [{"product_id": "...", "size": "M", "quantity": 2}]}
-
-    Voir aussi:
-        ``shared.order_totals.compute_order_total``.
+        Voir exceptions domaine propagées.
     """
     try:
         client_uuid = uuid.UUID(payload.client_id)
@@ -108,53 +47,58 @@ async def handle_create_order(
         except ValueError as exc:
             raise ProductNotFoundError(line.product_id) from exc
 
-    products_result = await session.execute(
-        select(Product).where(Product.id.in_(product_ids), Product.is_active.is_(True))
+    articles_result = await session.execute(
+        select(Article).where(
+            Article.id.in_(product_ids),
+            Article.quantite_stock > 0,
+        )
     )
-    products = {p.id: p for p in products_result.scalars().all()}
+    articles = {a.id: a for a in articles_result.scalars().all()}
 
-    line_inputs: list[OrderLineInput] = []
-    order_lines: list[OrderLine] = []
+    lignes: list[LigneCommande] = []
 
     for req_line in payload.lines:
-        pid = uuid.UUID(req_line.product_id)
-        product = products.get(pid)
-        if product is None:
+        aid = uuid.UUID(req_line.product_id)
+        article = articles.get(aid)
+        if article is None:
             raise ProductNotFoundError(req_line.product_id)
 
-        sizes = list(product.sizes) if product.sizes else []
-        if req_line.size not in sizes:
+        colors = list(article.couleurs_disponibles or [])
+        if req_line.size not in colors:
             raise InvalidOrderLineError(
-                f"Taille '{req_line.size}' invalide pour le produit {req_line.product_id}"
+                f"Couleur '{req_line.size}' invalide pour l'article {req_line.product_id}"
             )
+        if (article.quantite_stock or 0) < req_line.quantity:
+            raise InvalidOrderLineError("Stock insuffisant pour cet article")
 
-        unit_price = Decimal(product.unit_price)
-        line_inputs.append(OrderLineInput(req_line.quantity, unit_price))
-        order_lines.append(
-            OrderLine(
-                product_id=pid,
-                size=req_line.size,
-                quantity=req_line.quantity,
-                unit_price=unit_price,
+        lignes.append(
+            LigneCommande(
+                article_id=aid,
+                quantite=req_line.quantity,
+                couleur_choisie=req_line.size,
+                prix_unitaire_vente=Decimal(article.prix_vente),
+                prix_unitaire_achat=Decimal(article.prix_achat),
             )
         )
+        article.quantite_stock = (
+            article.quantite_stock or 0) - req_line.quantity
 
-    total = compute_order_total(line_inputs)
-    order = Order(
+    commande = Commande(
         client_id=client_uuid,
-        payment_status=PaymentStatus.UNPAID,
-        delivery_status=DeliveryStatus.NOT_DELIVERED,
-        total_amount=total,
-        deposit_amount=Decimal("0"),
-        lines=order_lines,
+        statut_paiement=StatutPaiement.EN_ATTENTE,
+        statut_livraison=StatutLivraison.NON_LIVRE,
+        montant_avance=Decimal("0"),
+        reduction=payload.reduction,
+        lieu_livraison=payload.lieu_livraison,
+        lignes=lignes,
     )
-    session.add(order)
+    session.add(commande)
     await session.flush()
 
     result = await session.execute(
-        select(Order)
-        .where(Order.id == order.id)
-        .options(selectinload(Order.lines))
+        select(Commande)
+        .where(Commande.id == commande.id)
+        .options(selectinload(Commande.lignes))
     )
     loaded = result.scalar_one()
-    return _order_to_response(loaded)
+    return commande_to_response(loaded)

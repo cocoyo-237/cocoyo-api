@@ -11,10 +11,10 @@ from features.router_registry import get_api_routers
 OPENAPI_TAGS = [
     {"name": "Health", "description": "Santé de l'API"},
     {"name": "Auth", "description": "Inscription et connexion Supabase Auth"},
-    {"name": "Catalogue", "description": "Module A — produits et tarifs"},
+    {"name": "Catalogue", "description": "Module A - produits et tarifs"},
     {"name": "Clients", "description": "Clients pour les commandes"},
-    {"name": "Orders", "description": "Modules B/C — commandes et statuts"},
-    {"name": "Dashboard", "description": "Module D — indicateurs"},
+    {"name": "Orders", "description": "Modules B/C - commandes et statuts"},
+    {"name": "Dashboard", "description": "Module D - indicateurs"},
 ]
 
 
@@ -47,7 +47,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Cocoyo API",
         description=(
-            "Back-office marque de vêtements — catalogue, commandes, dashboard.\n\n"
+            "Back-office marque de vêtements - catalogue, commandes, dashboard.\n\n"
             "**Swagger :** utilisez `POST /auth/login`, puis **Authorize** avec le "
             "`access_token` (sans préfixe `Bearer`)."
         ),
@@ -88,7 +88,7 @@ def create_app() -> FastAPI:
             dict: Statut ok.
 
         HTTP:
-            GET /health — 200.
+            GET /health - 200.
         """
         return {"status": "ok"}
 

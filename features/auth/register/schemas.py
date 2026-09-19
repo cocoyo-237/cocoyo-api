@@ -1,4 +1,4 @@
-"""Schémas Pydantic — inscription Supabase Auth."""
+"""Schémas Pydantic - inscription Supabase Auth."""
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -7,10 +7,11 @@ class RegisterRequest(BaseModel):
     """Corps de ``POST /auth/register``.
 
     Contexte:
-        Slice ``features/auth/register`` — création compte back-office.
+        Slice ``features/auth/register`` - création compte back-office.
     """
 
-    email: EmailStr = Field(..., description="Adresse email de l'opérateur", examples=["ops@cocoyo.com"])
+    email: EmailStr = Field(..., description="Adresse email de l'opérateur", examples=[
+                            "ops@cocoyo.com"])
     password: str = Field(
         ...,
         min_length=8,
@@ -24,4 +25,5 @@ class RegisterResponse(BaseModel):
 
     user_id: str = Field(..., description="UUID utilisateur Supabase")
     email: EmailStr = Field(..., description="Email confirmé")
-    message: str = Field(default="Inscription réussie", description="Message informatif")
+    message: str = Field(default="Inscription réussie",
+                         description="Message informatif")

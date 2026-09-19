@@ -1,4 +1,4 @@
-"""Schémas — liste produits."""
+"""Schémas - liste produits."""
 
 from pydantic import BaseModel, Field
 
